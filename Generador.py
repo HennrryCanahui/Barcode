@@ -5,23 +5,13 @@ from barcode import get_barcode_class
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
 
-import time
+#import time
 
 # Lista de códigos y cantidades como tuplas
 id_copias_list = []
-""""
-while True:
-    # Pedir al usuario que ingrese el código
-    codigo = input("Ingrese el código: ")
-    cantidad = int(input("Ingresa la cantidad: "))
-    precio = input("Ingresa el precio: ")
-    id_copias_list.append((codigo, cantidad, precio))  # Agregar el código, cantidad y precio a la lista
-    salir = input("¿Salir? 's' para sí o 'n' para no: ").lower()
-    if salir == 's':
-        break
-"""
-start = time.time()
-def generar_codigos_barras_pdf(id_copias_list, output_filename='codigos_barras.pdf'):
+
+#start = time.time()
+def generar_codigos_barras_pdf(id_copias_list, output_filename='C:/Users/FACTURACION/Desktop/codigos/codigos_barras.pdf'):
     # Generar un único código de barras por tipo y guardar el nombre del archivo
     
     codigos_barras = {}
@@ -99,8 +89,8 @@ def generar_codigos_barras_pdf(id_copias_list, output_filename='codigos_barras.p
 
 
 
-end = time.time()
-print(f"Tiempo de ejecución: {end - start} segundos")
+#end = time.time()
+#print(f"Tiempo de ejecución: {end - start} segundos")
 
 
 #
