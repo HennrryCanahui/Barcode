@@ -194,3 +194,7 @@ def main(page: ft.Page):
 # Ejecuta la aplicación
 if __name__ == "__main__":
     ft.app(target=main)
+
+
+
+#  pyinstaller --onefile --noconsole Main.py
