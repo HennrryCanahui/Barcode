@@ -7,13 +7,34 @@ from reportlab.lib.units import cm
 
 #import time
 
+# Detecta correctamente el escritorio visible (OneDrive o local)
+def obtener_escritorio_real():
+    posibles_rutas = [
+        os.path.join(os.path.expanduser("~"), "OneDrive", "Escritorio"),
+        os.path.join(os.path.expanduser("~"), "OneDrive", "Desktop"),
+        os.path.join(os.path.expanduser("~"), "Escritorio"),
+        os.path.join(os.path.expanduser("~"), "Desktop"),
+    ]
+    for ruta in posibles_rutas:
+        if os.path.exists(ruta):
+            return ruta
+    return os.path.join(os.path.expanduser("~"), "Desktop")  # Fallback
+
 # Lista de códigos y cantidades como tuplas
 id_copias_list = []
 
 #start = time.time()
-def generar_codigos_barras_pdf(id_copias_list, output_filename='C:/Users/FACTURACION/Desktop/codigos/codigos_barras.pdf'):
-    # Generar un único código de barras por tipo y guardar el nombre del archivo
-    
+def generar_codigos_barras_pdf(id_copias_list, output_filename=None):
+    # Ruta por defecto: carpeta "codigos" en el escritorio visible
+    if output_filename is None:
+        desktop_path = obtener_escritorio_real()
+        output_dir = os.path.join(desktop_path, "codigos")
+        os.makedirs(output_dir, exist_ok=True)
+        output_filename = os.path.join(output_dir, "codigos_barras.pdf")
+    else:
+        output_dir = os.path.dirname(output_filename)
+        os.makedirs(output_dir, exist_ok=True)
+
     codigos_barras = {}
     for id, _, precio in id_copias_list:
         if id not in codigos_barras:
@@ -26,6 +47,7 @@ def generar_codigos_barras_pdf(id_copias_list, output_filename='C:/Users/FACTURA
             options = {'write_text': False}  # Desactiva el número debajo del código de barras
             full_filename = codigo_barra.save(filename, options)
             codigos_barras[id] = (full_filename, precio)  # Guardar el archivo y el precio
+
 
     # Crear el PDF con los códigos de barras
     c = canvas.Canvas(output_filename, pagesize=letter)

@@ -198,3 +198,5 @@ if __name__ == "__main__":
 
 
 #  pyinstaller --onefile --noconsole Main.py
+# flet run --web Main.py   ## run web
+# flet run --android       ## android
