@@ -10,16 +10,22 @@ def main(page: ft.Page):
     page.window_min_height = 600
     page.window_min_width = 1280
     page.window_max_width = 1280
+    page.padding = 20
+    page.theme_mode = ft.ThemeMode.DARK
 
     # Variables para almacenar datos
     codigos_list = []
-    global index_editar
     index_editar = None
 
+    # Crear el SnackBar una sola vez
+    snack_bar = ft.SnackBar(ft.Text(""))
+    page.overlay.append(snack_bar)
+
     # Función para mostrar mensajes de retroalimentación
-    def mostrar_mensaje(mensaje, color=ft.colors.GREEN):
-        page.snack_bar = ft.SnackBar(ft.Text(mensaje), bgcolor=color)
-        page.snack_bar.open = True  
+    def mostrar_mensaje(mensaje, color=ft.Colors.GREEN):
+        snack_bar.content = ft.Text(mensaje)
+        snack_bar.bgcolor = color
+        snack_bar.open = True
         page.update()
 
     # Función para generar un número aleatorio de 12 cifras
@@ -30,7 +36,7 @@ def main(page: ft.Page):
 
     # Función para agregar o actualizar datos en la tabla
     def agregar_datos(e):
-        global index_editar
+        nonlocal index_editar
         codigo = txt_codigo.value.strip()
         cantidad = txt_cantidad.value.strip()
         precio = txt_precio.value.strip()
@@ -52,10 +58,10 @@ def main(page: ft.Page):
 
             # Deshabilitar el botón de actualizar
             btn_actualizar.disabled = True
-            btn_actualizar.bgcolor = ft.colors.GREY_400  # Color del botón deshabilitado
+            btn_actualizar.bgcolor = ft.Colors.GREY_400
             page.update()
         else:
-            mostrar_mensaje("Por favor, ingrese datos válidos.", ft.colors.RED)
+            mostrar_mensaje("Por favor, ingrese datos válidos.", ft.Colors.RED)
 
     # Función para actualizar la tabla
     def actualizar_tabla():
@@ -64,11 +70,13 @@ def main(page: ft.Page):
             tabla.rows.append(
                 ft.DataRow(
                     cells=[
-                        ft.DataCell(ft.Text(item["codigo"], color=ft.colors.BLACK)),  # Color del texto
-                        ft.DataCell(ft.Text(str(item["cantidad"]), color=ft.colors.BLACK)),
-                        ft.DataCell(ft.Text(f"Q{item['precio']}", color=ft.colors.BLACK)),
-                        ft.DataCell(ft.IconButton(icon=ft.icons.EDIT, icon_color=ft.colors.BLUE, on_click=functools.partial(editar_dato, index))),  # Color del ícono de editar
-                        ft.DataCell(ft.IconButton(icon=ft.icons.DELETE, icon_color=ft.colors.RED, on_click=functools.partial(eliminar_dato, item))),  # Color del ícono de eliminar
+                        ft.DataCell(ft.Text(item["codigo"], color=ft.Colors.BLACK)),
+                        ft.DataCell(ft.Text(str(item["cantidad"]), color=ft.Colors.BLACK)),
+                        ft.DataCell(ft.Text(f"Q{item['precio']}", color=ft.Colors.BLACK)),
+                        ft.DataCell(ft.IconButton(icon=ft.Icons.EDIT, icon_color=ft.Colors.BLUE, 
+                                                 on_click=functools.partial(editar_dato, index))),
+                        ft.DataCell(ft.IconButton(icon=ft.Icons.DELETE, icon_color=ft.Colors.RED, 
+                                                 on_click=functools.partial(eliminar_dato, index))),
                     ]
                 )
             )
@@ -76,7 +84,7 @@ def main(page: ft.Page):
 
     # Función para editar datos
     def editar_dato(index, e):
-        global index_editar
+        nonlocal index_editar
         item = codigos_list[index]
         index_editar = index
         txt_codigo.value = item["codigo"]
@@ -85,13 +93,13 @@ def main(page: ft.Page):
 
         # Habilitar el botón de actualizar
         btn_actualizar.disabled = False
-        btn_actualizar.bgcolor = ft.colors.BLUE  # Color del botón habilitado
+        btn_actualizar.bgcolor = ft.Colors.BLUE
         page.update()
 
     # Función para eliminar datos
-    def eliminar_dato(item, e):
-        global index_editar
-        codigos_list.remove(item)
+    def eliminar_dato(index, e):
+        nonlocal index_editar
+        codigos_list.pop(index)
         index_editar = None
         actualizar_tabla()
         mostrar_mensaje("Registro eliminado correctamente.")
@@ -103,95 +111,107 @@ def main(page: ft.Page):
             generar_codigos_barras_pdf(id_copias_list)
             mostrar_mensaje("PDF generado correctamente.")
         else:
-            mostrar_mensaje("La lista está vacía. Agregue elementos antes de generar el PDF.", ft.colors.RED)
+            mostrar_mensaje("La lista está vacía. Agregue elementos antes de generar el PDF.", ft.Colors.RED)
 
     # Elementos de entrada
-    txt_codigo = ft.TextField(label="Código", autofocus=True, expand=True, border_color=ft.colors.BLUE)  # Color del borde
-    txt_cantidad = ft.TextField(label="Cantidad", keyboard_type=ft.KeyboardType.NUMBER, expand=True, border_color=ft.colors.BLUE)
-    txt_precio = ft.TextField(label="Precio (Q)", keyboard_type=ft.KeyboardType.NUMBER, expand=True, border_color=ft.colors.BLUE)
+    txt_codigo = ft.TextField(label="Código", autofocus=True, expand=True, border_color=ft.Colors.BLUE)
+    txt_cantidad = ft.TextField(label="Cantidad", keyboard_type=ft.KeyboardType.NUMBER, expand=True, border_color=ft.Colors.BLUE)
+    txt_precio = ft.TextField(label="Precio (Q)", keyboard_type=ft.KeyboardType.NUMBER, expand=True, border_color=ft.Colors.BLUE)
 
-    # Botón para generar un número aleatorio de 12 cifras
+    # Botones
     btn_generar_codigo = ft.ElevatedButton(
-        "Generar Código",
-        icon=ft.icons.CASINO,  # Ícono de un dado (puedes cambiarlo)
+        "Generar",
+        icon=ft.Icons.CASINO,
         on_click=generar_numero_aleatorio,
-        color=ft.colors.WHITE,
-        bgcolor=ft.colors.ORANGE,  # Color del botón
+        color=ft.Colors.WHITE,
+        bgcolor=ft.Colors.ORANGE,
+        expand=True,
     )
 
-    # Botón para agregar datos
-    btn_agregar = ft.ElevatedButton("Agregar", icon=ft.icons.ADD, on_click=agregar_datos, color=ft.colors.WHITE, bgcolor=ft.colors.BLUE)  # Color del botón
+    btn_agregar = ft.ElevatedButton("Agregar", icon=ft.Icons.ADD, on_click=agregar_datos, 
+                                   color=ft.Colors.WHITE, bgcolor=ft.Colors.BLUE, expand=True)
+    btn_generar_pdf = ft.ElevatedButton("PDF", icon=ft.Icons.PICTURE_AS_PDF, on_click=enviar_a_pdf, 
+                                      color=ft.Colors.WHITE, bgcolor=ft.Colors.GREEN, expand=True)
+    btn_actualizar = ft.ElevatedButton("Actualizar", icon=ft.Icons.UPDATE, on_click=agregar_datos, 
+                                     bgcolor=ft.Colors.GREY_400, disabled=True, color=ft.Colors.WHITE, expand=True)
+    btn_ajustes = ft.ElevatedButton("Ajustes", icon=ft.Icons.SETTINGS, 
+                                   color=ft.Colors.WHITE, bgcolor=ft.Colors.PURPLE, expand=True) 
+    btn_imprimir = ft.ElevatedButton("Imprimir", icon=ft.Icons.LOCAL_PRINTSHOP, 
+                                    color=ft.Colors.WHITE, bgcolor=ft.Colors.TEAL, expand=True)
 
-    # Botón para generar PDF
-    btn_generar_pdf = ft.ElevatedButton("Generar PDF", icon=ft.icons.PICTURE_AS_PDF, on_click=enviar_a_pdf, color=ft.colors.WHITE, bgcolor=ft.colors.GREEN)  # Color del botón
-
-    # Botón para actualizar datos
-    btn_actualizar = ft.ElevatedButton("Actualizar", icon=ft.icons.UPDATE, on_click=agregar_datos, bgcolor=ft.colors.GREY_400, disabled=True, color=ft.colors.WHITE)  # Color del botón deshabilitado
-
-    
-    Ajustes = ft.ElevatedButton("Ajustes", icon=ft.icons.SETTINGS, color=ft.colors.WHITE, bgcolor=ft.colors.PURPLE) 
-    Imprimir_pdf = ft.ElevatedButton("Imprimir PDF", icon=ft.icons.LOCAL_PRINTSHOP, color=ft.colors.WHITE, bgcolor=ft.colors.TEAL)
-
-    # Tabla editable
+    # Tabla
     tabla = ft.DataTable(
         columns=[
-            ft.DataColumn(ft.Text("Código", weight=ft.FontWeight.BOLD, color=ft.colors.BLACK)),  # Color del texto del encabezado
-            ft.DataColumn(ft.Text("Cantidad", weight=ft.FontWeight.BOLD, color=ft.colors.BLACK)),
-            ft.DataColumn(ft.Text("Precio", weight=ft.FontWeight.BOLD, color=ft.colors.BLACK)),
-            ft.DataColumn(ft.Text("Editar", weight=ft.FontWeight.BOLD, color=ft.colors.BLACK)),
-            ft.DataColumn(ft.Text("Eliminar", weight=ft.FontWeight.BOLD, color=ft.colors.BLACK)),
+            ft.DataColumn(ft.Text("Código", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
+            ft.DataColumn(ft.Text("Cantidad", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
+            ft.DataColumn(ft.Text("Precio", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
+            ft.DataColumn(ft.Text("Editar", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
+            ft.DataColumn(ft.Text("Eliminar", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
         ],
         rows=[],
-        border=ft.border.all(1, ft.colors.BLUE),  # Color del borde de la tabla
+        border=ft.border.all(1, ft.Colors.BLUE),
         border_radius=10,
-        vertical_lines=ft.border.BorderSide(1, ft.colors.BLUE),  # Color de las líneas verticales
-        horizontal_lines=ft.border.BorderSide(1, ft.colors.BLUE),  # Color de las líneas horizontales
+        vertical_lines=ft.border.BorderSide(1, ft.Colors.BLUE),
+        horizontal_lines=ft.border.BorderSide(1, ft.Colors.BLUE),
     )
 
     # Layout principal
-        # Layout principal
     page.add(
-        ft.Row(
-            controls=[
-                # Lado izquierdo: Campos de entrada en una sola fila horizontal
-                ft.Column(
-                    controls=[
-                        ft.Row([txt_codigo, txt_cantidad, txt_precio], spacing=10, alignment=ft.MainAxisAlignment.START),
-                    ],
-                    alignment=ft.MainAxisAlignment.START,
-                    expand=True,
-                ),
-                # Lado derecho: Botones en una matriz 2x3
-                ft.Column(
-                    controls=[
-                        ft.Row([btn_agregar, btn_generar_codigo, btn_generar_pdf], spacing=10),
-                        ft.Row([btn_actualizar, Ajustes, Imprimir_pdf], spacing=10),
-                    ],
-                    spacing=10,
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-            ],
-            spacing=20,
-            expand=False,
-        ),
-        ft.Divider(color=ft.colors.BLUE),  # Color del divisor
-
-        # Contenedor para el listado de códigos (centrado)
-        ft.Container(
-            content=ft.Column(
+    ft.Column(
+        controls=[
+            # Encabezado con inputs y botones en ResponsiveRow
+            ft.ResponsiveRow(
                 controls=[
-                    ft.Text("Listado de códigos", style="headlineMedium", color=ft.colors.BLUE, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
-                    ft.Container(tabla, padding=20, border_radius=10, bgcolor=ft.colors.GREY_200),
+                    ft.Column(
+                        controls=[
+                            ft.Row([txt_codigo, txt_cantidad, txt_precio], spacing=10),
+                        ],
+                        col={"sm": 12, "md": 6},
+                    ),
+                    ft.Column(
+                        controls=[
+                            ft.Row([btn_agregar, btn_generar_codigo, btn_generar_pdf], spacing=5),
+                            ft.Row([btn_actualizar, btn_ajustes, btn_imprimir], spacing=5),
+                        ],
+                        col={"sm": 12, "md": 6},
+                    ),
                 ],
-                alignment=ft.MainAxisAlignment.START,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=10,
             ),
-            expand=True,
-            alignment=ft.alignment.center,
-        ),
-    )
+            ft.Divider(color=ft.Colors.BLUE),
 
-# Ejecuta la aplicación
+            # Título centrado
+            ft.Text(
+                "Listado de códigos",
+                style=ft.TextThemeStyle.HEADLINE_MEDIUM,
+                color=ft.Colors.BLUE,
+                weight=ft.FontWeight.BOLD,
+                text_align=ft.TextAlign.CENTER
+            ),
+
+            # Contenedor de la tabla centrado y expandible
+            ft.Row(
+                controls=[
+                    ft.Container(
+                        content=tabla,
+                        padding=20,
+                        border_radius=10,
+                        bgcolor=ft.Colors.GREY_200,
+                        expand=True,
+                    )
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                expand=True,
+            )
+        ],
+        expand=True,
+        spacing=20,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    )
+)
+
+
+
 if __name__ == "__main__":
     ft.app(target=main)
 
