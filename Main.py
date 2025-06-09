@@ -7,9 +7,11 @@ def main(page: ft.Page):
     page.title = "Generador de códigos de barras"
     
     # Configuración de la ventana
-    page.window_min_height = 600
-    page.window_min_width = 1280
-    page.window_max_width = 1280
+    page.window.width = 569
+    page.window.height = 569
+    page.window.min_width = 550
+    page.window.min_height = 550
+   # page.window_max_width = 1280
     page.padding = 20
     page.theme_mode = ft.ThemeMode.DARK
 
@@ -35,7 +37,7 @@ def main(page: ft.Page):
         page.update()
 
     # Función para agregar o actualizar datos en la tabla
-    def agregar_datos(e):
+    def agregar_o_actualizar_datos(e):
         nonlocal index_editar
         codigo = txt_codigo.value.strip()
         cantidad = txt_cantidad.value.strip()
@@ -47,6 +49,11 @@ def main(page: ft.Page):
                 codigos_list[index_editar] = {"codigo": codigo, "cantidad": int(cantidad), "precio": str(precio)}
                 index_editar = None
                 mostrar_mensaje("Registro actualizado correctamente.")
+                
+                # Cambiar el botón de vuelta a "Agregar"
+                btn_agregar_actualizar.text = "Agregar"
+                btn_agregar_actualizar.icon = ft.Icons.ADD
+                btn_agregar_actualizar.bgcolor = ft.Colors.BLUE
             else:
                 # Si no estamos editando, agregamos un nuevo registro
                 codigos_list.append({"codigo": codigo, "cantidad": int(cantidad), "precio": str(precio)})
@@ -55,10 +62,6 @@ def main(page: ft.Page):
             actualizar_tabla()
             txt_codigo.value = txt_cantidad.value = txt_precio.value = ""
             txt_codigo.focus()
-
-            # Deshabilitar el botón de actualizar
-            btn_actualizar.disabled = True
-            btn_actualizar.bgcolor = ft.Colors.GREY_400
             page.update()
         else:
             mostrar_mensaje("Por favor, ingrese datos válidos.", ft.Colors.RED)
@@ -91,16 +94,28 @@ def main(page: ft.Page):
         txt_cantidad.value = str(item["cantidad"])
         txt_precio.value = item["precio"]
 
-        # Habilitar el botón de actualizar
-        btn_actualizar.disabled = False
-        btn_actualizar.bgcolor = ft.Colors.BLUE
+        # Cambiar el botón a modo "Actualizar"
+        btn_agregar_actualizar.text = "Actualizar"
+        btn_agregar_actualizar.icon = ft.Icons.UPDATE
+        btn_agregar_actualizar.bgcolor = ft.Colors.INDIGO
         page.update()
 
     # Función para eliminar datos
     def eliminar_dato(index, e):
         nonlocal index_editar
         codigos_list.pop(index)
-        index_editar = None
+        
+        # Si estábamos editando el elemento que se eliminó, resetear el botón
+        if index_editar == index:
+            index_editar = None
+            btn_agregar_actualizar.text = "Agregar"
+            btn_agregar_actualizar.icon = ft.Icons.ADD
+            btn_agregar_actualizar.bgcolor = ft.Colors.BLUE
+            txt_codigo.value = txt_cantidad.value = txt_precio.value = ""
+        elif index_editar is not None and index_editar > index:
+            # Ajustar el índice si eliminamos un elemento anterior al que estamos editando
+            index_editar -= 1
+            
         actualizar_tabla()
         mostrar_mensaje("Registro eliminado correctamente.")
 
@@ -128,12 +143,23 @@ def main(page: ft.Page):
         expand=True,
     )
 
-    btn_agregar = ft.ElevatedButton("Agregar", icon=ft.Icons.ADD, on_click=agregar_datos, 
-                                   color=ft.Colors.WHITE, bgcolor=ft.Colors.BLUE, expand=True)
+    # Botón combinado Agregar/Actualizar
+    btn_agregar_actualizar = ft.ElevatedButton(
+        "Agregar", 
+        icon=ft.Icons.ADD, 
+        on_click=agregar_o_actualizar_datos, 
+        color=ft.Colors.WHITE, 
+        bgcolor=ft.Colors.BLUE, 
+        expand=True
+    )
+    
     btn_generar_pdf = ft.ElevatedButton("PDF", icon=ft.Icons.PICTURE_AS_PDF, on_click=enviar_a_pdf, 
                                       color=ft.Colors.WHITE, bgcolor=ft.Colors.GREEN, expand=True)
-    btn_actualizar = ft.ElevatedButton("Actualizar", icon=ft.Icons.UPDATE, on_click=agregar_datos, 
-                                     bgcolor=ft.Colors.GREY_400, disabled=True, color=ft.Colors.WHITE, expand=True)
+    
+    # Botón para función futura (reemplaza al botón actualizar)
+    btn_funcion_futura = ft.ElevatedButton("Función Futura", icon=ft.Icons.LIGHTBULB, 
+                                         bgcolor=ft.Colors.GREY_400, disabled=True, color=ft.Colors.WHITE, expand=True)
+    
     btn_ajustes = ft.ElevatedButton("Ajustes", icon=ft.Icons.SETTINGS, 
                                    color=ft.Colors.WHITE, bgcolor=ft.Colors.PURPLE, expand=True) 
     btn_imprimir = ft.ElevatedButton("Imprimir", icon=ft.Icons.LOCAL_PRINTSHOP, 
@@ -170,8 +196,8 @@ def main(page: ft.Page):
                     ),
                     ft.Column(
                         controls=[
-                            ft.Row([btn_agregar, btn_generar_codigo, btn_generar_pdf], spacing=5),
-                            ft.Row([btn_actualizar, btn_ajustes, btn_imprimir], spacing=5),
+                            ft.Row([btn_agregar_actualizar, btn_generar_codigo, btn_generar_pdf], spacing=5),
+                            ft.Row([btn_funcion_futura, btn_ajustes, btn_imprimir], spacing=5),
                         ],
                         col={"sm": 12, "md": 6},
                     ),
