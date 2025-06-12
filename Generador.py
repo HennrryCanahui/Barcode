@@ -5,6 +5,7 @@ from barcode import get_barcode_class
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
 
+
 #import time
 
 # Detecta correctamente el escritorio visible (OneDrive o local)
