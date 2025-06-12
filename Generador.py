@@ -123,3 +123,7 @@ def generar_codigos_barras_pdf(id_copias_list, output_filename=None):
 ## superar cant 384 en 13s
 
 ## Harreglado cant 384 en 0.1s
+
+
+
+#   pip install pywin32

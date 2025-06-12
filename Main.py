@@ -1,7 +1,11 @@
 import flet as ft
-from Generador import generar_codigos_barras_pdf
+from Generador import generar_codigos_barras_pdf , obtener_escritorio_real
 import functools
-import random  
+import random
+import os
+import subprocess
+import platform
+
 
 def main(page: ft.Page):
     page.title = "Generador de códigos de barras"
@@ -128,6 +132,38 @@ def main(page: ft.Page):
         else:
             mostrar_mensaje("La lista está vacía. Agregue elementos antes de generar el PDF.", ft.Colors.RED)
 
+    # Función para imprimir
+    def imprimir_pdf(e):
+        ruta = obtener_escritorio_real()
+        ruta_pdf = os.path.expanduser(ruta + "\codigos\codigos_barras.pdf")
+        
+        # Verificar si el archivo existe
+        if not os.path.exists(ruta_pdf):
+            mostrar_mensaje("No se encontró el archivo PDF. Genere el PDF primero.", ft.Colors.RED)
+            return
+        
+        try:
+            # Detectar el sistema operativo y abrir el archivo con el visor predeterminado
+            sistema = platform.system()
+            
+            if sistema == "Windows":
+                # En Windows, usar 'start' para abrir con el programa predeterminado
+                os.startfile(ruta_pdf)
+            elif sistema == "Darwin":  # macOS
+                # En macOS, usar 'open'
+                subprocess.run(["open", ruta_pdf])
+            elif sistema == "Linux":
+                # En Linux, usar 'xdg-open'
+                subprocess.run(["xdg-open", ruta_pdf])
+            else:
+                mostrar_mensaje("Sistema operativo no soportado para abrir archivos.", ft.Colors.RED)
+                return
+                
+            mostrar_mensaje("Abriendo archivo PDF para imprimir...")
+            
+        except Exception as ex:
+            mostrar_mensaje(f"Error al abrir el archivo: {str(ex)}", ft.Colors.RED)
+
     # Elementos de entrada
     txt_codigo = ft.TextField(label="Código", autofocus=True, expand=True, border_color=ft.Colors.BLUE)
     txt_cantidad = ft.TextField(label="Cantidad", keyboard_type=ft.KeyboardType.NUMBER, expand=True, border_color=ft.Colors.BLUE)
@@ -163,7 +199,7 @@ def main(page: ft.Page):
     btn_ajustes = ft.ElevatedButton("Ajustes", icon=ft.Icons.SETTINGS, 
                                    color=ft.Colors.WHITE, bgcolor=ft.Colors.PURPLE, expand=True) 
     btn_imprimir = ft.ElevatedButton("Imprimir", icon=ft.Icons.LOCAL_PRINTSHOP, 
-                                    color=ft.Colors.WHITE, bgcolor=ft.Colors.TEAL, expand=True)
+                                    on_click=imprimir_pdf, color=ft.Colors.WHITE, bgcolor=ft.Colors.TEAL, expand=True)
 
     # Tabla
     tabla = ft.DataTable(
@@ -237,10 +273,8 @@ def main(page: ft.Page):
 )
 
 
-
 if __name__ == "__main__":
     ft.app(target=main)
-
 
 
 #  pyinstaller --onefile --noconsole Main.py
