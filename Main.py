@@ -135,7 +135,7 @@ def main(page: ft.Page):
     # Función para imprimir
     def imprimir_pdf(e):
         ruta = obtener_escritorio_real()
-        ruta_pdf = os.path.expanduser(ruta + "\codigos\codigos_barras.pdf")
+        ruta_pdf = os.path.expanduser(rf"{ruta}\codigos\codigos_barras.pdf")
         
         # Verificar si el archivo existe
         if not os.path.exists(ruta_pdf):
