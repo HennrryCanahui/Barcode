@@ -1,5 +1,5 @@
 import flet as ft
-from Generador import generar_codigos_barras_pdf , obtener_escritorio_real
+from Generador import generar_codigos_barras_pdf , obtener_ruta_escritorio_real
 import functools
 import random
 import os
@@ -134,7 +134,7 @@ def main(page: ft.Page):
 
     # Función para imprimir
     def imprimir_pdf(e):
-        ruta = obtener_escritorio_real()
+        ruta = obtener_ruta_escritorio_real()
         ruta_pdf = os.path.expanduser(rf"{ruta}\codigos\codigos_barras.pdf")
         
         # Verificar si el archivo existe

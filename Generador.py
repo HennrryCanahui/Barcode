@@ -8,102 +8,184 @@ from reportlab.lib.units import cm
 #import time
 
 # Detecta correctamente el escritorio visible (OneDrive o local)
-def obtener_escritorio_real():
-    posibles_rutas = [
-        os.path.join(os.path.expanduser("~"), "OneDrive", "Escritorio"),
-        os.path.join(os.path.expanduser("~"), "OneDrive", "Desktop"),
-        os.path.join(os.path.expanduser("~"), "Escritorio"),
-        os.path.join(os.path.expanduser("~"), "Desktop"),
-    ]
-    for ruta in posibles_rutas:
-        if os.path.exists(ruta):
-            return ruta
-    return os.path.join(os.path.expanduser("~"), "Desktop")  # Fallback
+lista_productos_con_cantidades = []
 
-# Lista de códigos y cantidades como tuplas
-id_copias_list = []
-
-#start = time.time()
-def generar_codigos_barras_pdf(id_copias_list, output_filename=None):
+def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_salida=None):
+    """
+    Genera un PDF con códigos de barras organizados en una grilla
+    
+    Args:
+        lista_productos_con_cantidades: Lista de tuplas (codigo, cantidad, precio)
+        nombre_archivo_salida: Ruta del archivo PDF de salida
+    """
     # Ruta por defecto: carpeta "codigos" en el escritorio visible
-    if output_filename is None:
-        desktop_path = obtener_escritorio_real()
-        output_dir = os.path.join(desktop_path, "codigos")
-        os.makedirs(output_dir, exist_ok=True)
-        output_filename = os.path.join(output_dir, "codigos_barras.pdf")
+    if nombre_archivo_salida is None:
+        ruta_escritorio = obtener_ruta_escritorio_real()
+        directorio_salida = os.path.join(ruta_escritorio, "codigos")
+        os.makedirs(directorio_salida, exist_ok=True)
+        nombre_archivo_salida = os.path.join(directorio_salida, "codigos_barras.pdf")
     else:
-        output_dir = os.path.dirname(output_filename)
-        os.makedirs(output_dir, exist_ok=True)
+        directorio_salida = os.path.dirname(nombre_archivo_salida)
+        if directorio_salida:  # Solo crear si hay un directorio especificado
+            os.makedirs(directorio_salida, exist_ok=True)
 
-    codigos_barras = {}
-    for id, _, precio in id_copias_list:
-        if id not in codigos_barras:
-            CODE128 = get_barcode_class('code128')
-            codigo_barra = CODE128(
-                str(id),
-                writer=ImageWriter()
-            )
-            filename = f"codigo_barra_{id}.png"
-            options = {'write_text': False}  # Desactiva el número debajo del código de barras
-            full_filename = codigo_barra.save(filename, options)
-            codigos_barras[id] = (full_filename, precio)  # Guardar el archivo y el precio
+    # Verificar que hay productos para procesar
+    if not lista_productos_con_cantidades:
+        print("No hay productos para generar códigos de barras")
+        return
 
+    # Generar códigos de barras únicos
+    diccionario_codigos_barras = {}
+    for codigo_producto, _, precio_producto in lista_productos_con_cantidades:
+        if codigo_producto not in diccionario_codigos_barras:
+            try:
+                generador_code128 = get_barcode_class('code128')
+                imagen_codigo_barra = generador_code128(
+                    str(codigo_producto),
+                    writer=ImageWriter()
+                )
+                nombre_archivo_temporal = f"codigo_barra_{codigo_producto}.png"
+                opciones_imagen = {'write_text': False}  # Desactiva el número debajo del código de barras
+                ruta_archivo_completa = imagen_codigo_barra.save(nombre_archivo_temporal, opciones_imagen)
+                diccionario_codigos_barras[codigo_producto] = (ruta_archivo_completa, precio_producto)
+            except Exception as e:
+                print(f"Error generando código de barras para {codigo_producto}: {e}")
+                continue
+
+    if not diccionario_codigos_barras:
+        print("No se pudieron generar códigos de barras")
+        return
 
     # Crear el PDF con los códigos de barras
-    c = canvas.Canvas(output_filename, pagesize=letter)
-    width, height = letter
-    x = 0.5 * cm  # Margen izquierdo
-    y = height - 0.8 * cm  # Margen superior
+    lienzo_pdf = canvas.Canvas(nombre_archivo_salida, pagesize=letter)
+    ancho_hoja, alto_hoja = letter
+    
+    # Configuración de márgenes y dimensiones (mínimos para impresión)
+    MARGEN_SUPERIOR = 0.7 * cm
+    MARGEN_INFERIOR = 0.5 * cm
+    MARGEN_IZQUIERDO = 0.2 * cm  # Mínimo para impresión
+    MARGEN_DERECHO = 0.2 * cm    # Mínimo para impresión
+    
+    # Área útil de la hoja (respetando márgenes)
+    area_util_ancho = ancho_hoja - MARGEN_IZQUIERDO - MARGEN_DERECHO
+    area_util_alto = alto_hoja - MARGEN_SUPERIOR - MARGEN_INFERIOR
+    
+    # Dimensiones optimizadas para 6 códigos por fila
+    ANCHO_CODIGO = 3.3 * cm  # Reducido ligeramente para garantizar espacio
+    ALTO_CODIGO = 1 * cm
+    
+    # Espaciado mínimo entre elementos
+    ESPACIO_HORIZONTAL = 0.15 * cm  # Reducido para maximizar espacio
+    ESPACIO_VERTICAL = 0.15 * cm
+    ESPACIO_PRECIO = 0.25 * cm
+    
+    # Configuración de la grilla - FORZAR 6 códigos por fila
+    CODIGOS_POR_FILA = 6
+    
+    # Calcular el espacio total requerido por fila
+    espacio_total_fila = (CODIGOS_POR_FILA * ANCHO_CODIGO) + ((CODIGOS_POR_FILA - 1) * ESPACIO_HORIZONTAL)
+    
+    # Verificar que caben 6 códigos, si no, ajustar el ancho del código
+    if espacio_total_fila > area_util_ancho:
+        # Recalcular ancho del código para que quepan exactamente 6
+        espacio_disponible_codigos = area_util_ancho - ((CODIGOS_POR_FILA - 1) * ESPACIO_HORIZONTAL)
+        ANCHO_CODIGO = espacio_disponible_codigos / CODIGOS_POR_FILA
+        espacio_total_fila = area_util_ancho  # Usar todo el ancho disponible
+        print(f"Ancho de código ajustado a: {ANCHO_CODIGO/cm:.2f} cm para garantizar 6 códigos por fila")
+    
+    # Calcular offset para centrar horizontalmente (mínimo centrado)
+    offset_horizontal = max(0, (area_util_ancho - espacio_total_fila) / 2)
+    
+    # Posiciones iniciales (respetando márgenes)
+    x_inicial = MARGEN_IZQUIERDO + offset_horizontal
+    y_inicial = alto_hoja - MARGEN_SUPERIOR
+    
+    # Variables de control
+    x_actual = x_inicial
+    y_actual = y_inicial
+    codigo_en_fila = 0
+    
+    # Altura total de cada elemento (precio + espacio + código de barras)
+    altura_elemento = 0.5 * cm + ESPACIO_PRECIO + ALTO_CODIGO
 
-    barra_ancho = 3.5 * cm  # Ancho de cada código de barras
-    barra_alto = 1 * cm  # Alto de cada código de barras
+    # Procesar cada producto
+    for codigo_producto, cantidad_copias, _ in lista_productos_con_cantidades:
+        if codigo_producto not in diccionario_codigos_barras:
+            continue
+            
+        archivo_codigo_barra, precio_producto = diccionario_codigos_barras[codigo_producto]
+        
+        for copia in range(cantidad_copias):
+            # Verificar si el código de barras cabe en la página actual
+            if y_actual - altura_elemento < MARGEN_INFERIOR:
+                # Nueva página
+                lienzo_pdf.showPage()
+                x_actual = x_inicial
+                y_actual = y_inicial
+                codigo_en_fila = 0
 
-    codigos_por_fila = 6
-
-    for id, cantidad, _ in id_copias_list:
-        codigo_barra, precio = codigos_barras[id]
-        for _ in range(cantidad):
-            if os.path.exists(codigo_barra):
-                # Precio a mostrar sobre el código de barras
-                precio_texto = f"Q{precio}"  # Mostrar el precio ingresado por el usuario
-
-                # Ajustar el tamaño y fuente para el precio
-                c.setFont("Helvetica-Bold", 14)
-                texto_ancho = c.stringWidth(precio_texto, "Helvetica-Bold", 14)
-
-                # Calcular la posición X para centrar el texto respecto al código de barras
-                texto_x = x + (barra_ancho - texto_ancho) / 2
-                c.drawString(texto_x, y + 4, precio_texto)  # Dibujar el precio sobre el código de barras
-
+            if os.path.exists(archivo_codigo_barra):
+                # Preparar texto del precio
+                texto_precio = f"Q{precio_producto}"
+                
+                # Configurar fuente para el precio
+                lienzo_pdf.setFont("Helvetica-Bold", 14)
+                ancho_texto = lienzo_pdf.stringWidth(texto_precio, "Helvetica-Bold", 14)
+                
+                # Posición del precio (centrado sobre el código de barras)
+                x_precio = x_actual + (ANCHO_CODIGO - ancho_texto) / 2
+                y_precio = y_actual - 0.4 * cm
+                
+                # Dibujar el precio
+                lienzo_pdf.drawString(x_precio, y_precio, texto_precio)
+                
+                # Posición del código de barras
+                y_codigo = y_actual - 0.4 * cm - ESPACIO_PRECIO - ALTO_CODIGO
+                
                 # Dibujar el código de barras
-                c.drawImage(codigo_barra, x, y - barra_alto, width=barra_ancho, height=barra_alto)
-                x += barra_ancho  # Mover la posición horizontal para el siguiente código de barras
-
-                # Si ya se colocaron 6 códigos en la fila, saltar a la siguiente fila
-                if (x + barra_ancho) > width:
-                    x = 0.5 * cm  # Reiniciar al margen izquierdo
-                    y -= barra_alto + 0.7 * cm  # Bajar a la siguiente fila
-
-                # Verificar si es necesario crear una nueva página
-                if y - barra_alto < 0.5 * cm:
-                    c.showPage()
-                    x = 0.5 * cm
-                    y = height - 1.5 * cm
+                lienzo_pdf.drawImage(
+                    archivo_codigo_barra,
+                    x_actual,
+                    y_codigo,
+                    width=ANCHO_CODIGO,
+                    height=ALTO_CODIGO
+                )
+                
+                # Actualizar posición para el siguiente código
+                codigo_en_fila += 1
+                
+                if codigo_en_fila < CODIGOS_POR_FILA:
+                    # Mover a la siguiente posición horizontal
+                    x_actual += ANCHO_CODIGO + ESPACIO_HORIZONTAL
+                else:
+                    # Saltar a la siguiente fila
+                    x_actual = x_inicial
+                    y_actual -= altura_elemento + ESPACIO_VERTICAL
+                    codigo_en_fila = 0
+                    
             else:
-                print(f"Archivo no encontrado: {codigo_barra}")
+                print(f"Archivo de código de barras no encontrado: {archivo_codigo_barra}")
 
-    c.save()
-    print(f"PDF generado: {output_filename}")
+    # Guardar el PDF
+    lienzo_pdf.save()
+    print(f"PDF generado exitosamente: {nombre_archivo_salida}")
 
-    # Eliminar archivos de imagen temporales
-    for filename, _ in codigos_barras.values():
+    # Limpiar archivos temporales
+    archivos_eliminados = 0
+    for codigo_producto, (ruta_archivo_temporal, _) in diccionario_codigos_barras.items():
         try:
-            if os.path.exists(filename):
-                os.remove(filename)
-            else:
-                print(f"No se pudo encontrar el archivo para eliminar: {filename}")
+            if os.path.exists(ruta_archivo_temporal):
+                os.remove(ruta_archivo_temporal)
+                archivos_eliminados += 1
         except Exception as e:
-            print(f"No se pudo eliminar el archivo {filename}: {e}")
+            print(f"Error eliminando archivo temporal {ruta_archivo_temporal}: {e}")
+    
+    print(f"Archivos temporales eliminados: {archivos_eliminados}")
+
+def obtener_ruta_escritorio_real():
+    """Función auxiliar para obtener la ruta del escritorio"""
+    import os
+    return os.path.join(os.path.expanduser("~"), "Desktop")
 
 # Llamar a la función con la lista correcta
 #generar_codigos_barras_pdf(id_copias_list)
