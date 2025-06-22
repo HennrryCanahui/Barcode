@@ -185,7 +185,15 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
 def obtener_ruta_escritorio_real():
     """Función auxiliar para obtener la ruta del escritorio"""
     import os
-    return os.path.join(os.path.expanduser("~"), "Desktop")
+    import ctypes
+    from ctypes import wintypes
+    CSIDL_DESKTOP = 0  # Escritorio
+    SHGFP_TYPE_CURRENT = 0
+
+    buf = ctypes.create_unicode_buffer(wintypes.MAX_PATH)
+    ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_DESKTOP, None, SHGFP_TYPE_CURRENT, buf)
+
+    return buf.value
 
 # Llamar a la función con la lista correcta
 #generar_codigos_barras_pdf(id_copias_list)
