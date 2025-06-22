@@ -6,16 +6,15 @@ import os
 import subprocess
 import platform
 
-
 def main(page: ft.Page):
     page.title = "Generador de códigos de barras"
     
     # Configuración de la ventana
-    page.window.width = 569
-    page.window.height = 569
-    page.window.min_width = 550
-    page.window.min_height = 550
-   # page.window_max_width = 1280
+    page.window.width = 657
+    page.window.height = 700
+    page.window.min_width = 657
+    page.window.min_height = 700
+  
     page.padding = 20
     page.theme_mode = ft.ThemeMode.DARK
 
@@ -69,25 +68,6 @@ def main(page: ft.Page):
             page.update()
         else:
             mostrar_mensaje("Por favor, ingrese datos válidos.", ft.Colors.RED)
-
-    # Función para actualizar la tabla
-    def actualizar_tabla():
-        tabla.rows.clear()
-        for index, item in enumerate(codigos_list):
-            tabla.rows.append(
-                ft.DataRow(
-                    cells=[
-                        ft.DataCell(ft.Text(item["codigo"], color=ft.Colors.BLACK)),
-                        ft.DataCell(ft.Text(str(item["cantidad"]), color=ft.Colors.BLACK)),
-                        ft.DataCell(ft.Text(f"Q{item['precio']}", color=ft.Colors.BLACK)),
-                        ft.DataCell(ft.IconButton(icon=ft.Icons.EDIT, icon_color=ft.Colors.BLUE, 
-                                                 on_click=functools.partial(editar_dato, index))),
-                        ft.DataCell(ft.IconButton(icon=ft.Icons.DELETE, icon_color=ft.Colors.RED, 
-                                                 on_click=functools.partial(eliminar_dato, index))),
-                    ]
-                )
-            )
-        page.update()
 
     # Función para editar datos
     def editar_dato(index, e):
@@ -164,6 +144,7 @@ def main(page: ft.Page):
         except Exception as ex:
             mostrar_mensaje(f"Error al abrir el archivo: {str(ex)}", ft.Colors.RED)
 
+
     # Elementos de entrada
     txt_codigo = ft.TextField(label="Código", autofocus=True, expand=True, border_color=ft.Colors.BLUE)
     txt_cantidad = ft.TextField(label="Cantidad", keyboard_type=ft.KeyboardType.NUMBER, expand=True, border_color=ft.Colors.BLUE)
@@ -201,76 +182,237 @@ def main(page: ft.Page):
     btn_imprimir = ft.ElevatedButton("Imprimir", icon=ft.Icons.LOCAL_PRINTSHOP, 
                                     on_click=imprimir_pdf, color=ft.Colors.WHITE, bgcolor=ft.Colors.TEAL, expand=True)
 
-    # Tabla
-    tabla = ft.DataTable(
-        columns=[
-            ft.DataColumn(ft.Text("Código", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
-            ft.DataColumn(ft.Text("Cantidad", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
-            ft.DataColumn(ft.Text("Precio", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
-            ft.DataColumn(ft.Text("Editar", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
-            ft.DataColumn(ft.Text("Eliminar", weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK)),
-        ],
-        rows=[],
-        border=ft.border.all(1, ft.Colors.BLUE),
-        border_radius=10,
-        vertical_lines=ft.border.BorderSide(1, ft.Colors.BLUE),
-        horizontal_lines=ft.border.BorderSide(1, ft.Colors.BLUE),
+    # Tamaño de texto
+    tamaño_texto = 17
+
+    # Función mejorada para actualizar la tabla con flex para expansión proporcional
+    def actualizar_tabla():
+        lista_contenido = container_tabla.content.controls[1].content
+        lista_contenido.controls.clear()
+
+        for index, item in enumerate(codigos_list):
+            fila = ft.Container(
+                content=ft.Row(
+                    controls=[
+                        # Columna Código - flex=4 para mayor espacio (códigos de 13 dígitos)
+                        ft.Container(
+                            content=ft.Text(
+                                item["codigo"], 
+                                color=ft.Colors.WHITE, 
+                                size=17, 
+                                text_align=ft.TextAlign.CENTER,
+                                selectable=True  # Permite seleccionar el texto
+                            ),
+                            padding=ft.padding.symmetric(horizontal=8, vertical=8),
+                            alignment=ft.alignment.center,
+                            expand=4,  # Más espacio para códigos largos
+                        ),
+                        # Columna Cantidad - flex=2
+                        ft.Container(
+                            content=ft.Text(
+                                str(item["cantidad"]), 
+                                color=ft.Colors.WHITE, 
+                                size=17,
+                                text_align=ft.TextAlign.CENTER
+                            ),
+                            padding=ft.padding.symmetric(horizontal=8, vertical=8),
+                            alignment=ft.alignment.center,
+                            expand=2,
+                        ),
+                        # Columna Precio - flex=3
+                        ft.Container(
+                            content=ft.Text(
+                                f"Q{item['precio']}", 
+                                color=ft.Colors.WHITE, 
+                                size=17,
+                                text_align=ft.TextAlign.CENTER
+                            ),
+                            padding=ft.padding.symmetric(horizontal=8, vertical=8),
+                            alignment=ft.alignment.center,
+                            expand=3,
+                        ),
+                        # Columna Acción - flex=3
+                        ft.Container(
+                            content=ft.Row(
+                                [
+                                    ft.IconButton(
+                                        icon=ft.Icons.EDIT, 
+                                        icon_color=ft.Colors.BLUE, 
+                                        icon_size=20,
+                                        on_click=functools.partial(editar_dato, index),
+                                        tooltip="Editar"
+                                    ),
+                                    ft.IconButton(
+                                        icon=ft.Icons.DELETE, 
+                                        icon_color=ft.Colors.RED, 
+                                        icon_size=20,
+                                        on_click=functools.partial(eliminar_dato, index),
+                                        tooltip="Eliminar"
+                                    ),
+                                ],
+                                spacing=0,
+                                tight=True,
+                                alignment=ft.MainAxisAlignment.CENTER,
+                            ),
+                            padding=ft.padding.symmetric(horizontal=8, vertical=4),
+                            alignment=ft.alignment.center,
+                            expand=3,
+                        ),
+                    ],
+                    spacing=0,
+                    expand=True,  # Permite que la fila se expanda
+                ),
+                bgcolor=ft.Colors.GREY_900,
+                border=ft.border.only(bottom=ft.border.BorderSide(1, ft.Colors.BLUE_GREY_700)),
+                padding=ft.padding.all(0),
+                border_radius=ft.border_radius.all(5),
+                expand=True,  # Permite que el contenedor se expanda
+            )
+            lista_contenido.controls.append(fila)
+        
+        page.update()
+
+    # Contenedor de la tabla mejorado con flex para expansión proporcional
+    container_tabla = ft.Container(
+        content=ft.Column(
+            controls=[
+                # Encabezado con flex matching - mismo patrón que las filas
+                ft.Container(
+                    content=ft.Row(
+                        controls=[
+                            # Encabezado Código - flex=4 (mismo que las filas)
+                            ft.Container(
+                                content=ft.Text(
+                                    "Código", 
+                                    weight=ft.FontWeight.BOLD, 
+                                    size=tamaño_texto, 
+                                    color=ft.Colors.WHITE,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                                expand=4,  # Mismo flex que las filas
+                                alignment=ft.alignment.center,
+                                padding=ft.padding.symmetric(horizontal=8, vertical=8),
+                            ),
+                            # Encabezado Cantidad - flex=2
+                            ft.Container(
+                                content=ft.Text(
+                                    "Cantidad", 
+                                    weight=ft.FontWeight.BOLD, 
+                                    size=tamaño_texto, 
+                                    color=ft.Colors.WHITE,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                                expand=2,
+                                padding=ft.padding.symmetric(horizontal=8, vertical=8),
+                                alignment=ft.alignment.center,
+                            ),
+                            # Encabezado Precio - flex=3
+                            ft.Container(
+                                content=ft.Text(
+                                    "Precio", 
+                                    weight=ft.FontWeight.BOLD, 
+                                    size=tamaño_texto, 
+                                    color=ft.Colors.WHITE,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                                expand=3,
+                                padding=ft.padding.symmetric(horizontal=8, vertical=8),
+                                alignment=ft.alignment.center,
+                            ),
+                            # Encabezado Acción - flex=3
+                            ft.Container(
+                                content=ft.Text(
+                                    "Acción", 
+                                    weight=ft.FontWeight.BOLD, 
+                                    size=tamaño_texto, 
+                                    color=ft.Colors.WHITE,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                                expand=3,
+                                padding=ft.padding.symmetric(horizontal=8, vertical=8),
+                                alignment=ft.alignment.center,
+                            ),
+                        ],
+                        spacing=0,
+                        expand=True,  # Permite que el encabezado se expanda
+                    ),
+                    bgcolor=ft.Colors.BLUE_GREY_900,
+                    border=ft.border.all(1, ft.Colors.BLUE),
+                    border_radius=ft.border_radius.only(top_left=10, top_right=10),
+                    expand=False,  # El encabezado no debe expandirse verticalmente
+                ),
+                # Contenido scrolleable
+                ft.Container(
+                    content=ft.ListView(
+                        controls=[],
+                        height=294,
+                        spacing=0,
+                        padding=ft.padding.all(0),
+                        expand=True,
+                    ),
+                    border=ft.border.only(
+                        left=ft.border.BorderSide(1, ft.Colors.BLUE),
+                        right=ft.border.BorderSide(1, ft.Colors.BLUE),
+                        bottom=ft.border.BorderSide(1, ft.Colors.BLUE),
+                    ),
+                    border_radius=ft.border_radius.only(bottom_left=10, bottom_right=10),
+                    bgcolor=ft.Colors.GREY_800,
+                    expand=True,
+                )
+            ],
+            spacing=0,
+            expand=True,  # Permite que la columna se expanda
+        ),
+        margin=ft.margin.only(left=30, right=30, top=10, bottom=30),
+        expand=True,
     )
 
     # Layout principal
     page.add(
-    ft.Column(
-        controls=[
-            # Encabezado con inputs y botones en ResponsiveRow
-            ft.ResponsiveRow(
+        ft.Column(
+            controls=[
+                # Encabezado con inputs y botones
+                ft.ResponsiveRow(
                 controls=[
                     ft.Column(
                         controls=[
                             ft.Row([txt_codigo, txt_cantidad, txt_precio], spacing=10),
                         ],
-                        col={"sm": 12, "md": 6},
+                        col={"sm": 12, "md": 7},
                     ),
                     ft.Column(
                         controls=[
                             ft.Row([btn_agregar_actualizar, btn_generar_codigo, btn_generar_pdf], spacing=5),
-                            ft.Row([btn_funcion_futura, btn_ajustes, btn_imprimir], spacing=5),
+                            ft.Row([ btn_ajustes, btn_imprimir], spacing=5),
                         ],
-                        col={"sm": 12, "md": 6},
+                        col={"sm": 12, "md":  5 },
                     ),
                 ],
                 spacing=10,
             ),
             ft.Divider(color=ft.Colors.BLUE),
 
-            # Título centrado
-            ft.Text(
-                "Listado de códigos",
-                style=ft.TextThemeStyle.HEADLINE_MEDIUM,
-                color=ft.Colors.BLUE,
-                weight=ft.FontWeight.BOLD,
-                text_align=ft.TextAlign.CENTER
-            ),
+                # Título centrado
+                ft.Row(
+                    controls=[
+                        ft.Text(
+                            "Listado de códigos",
+                            style=ft.TextThemeStyle.HEADLINE_MEDIUM,
+                            color=ft.Colors.BLUE,
+                            weight=ft.FontWeight.BOLD,
+                            text_align=ft.TextAlign.CENTER,
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
 
-            # Contenedor de la tabla centrado y expandible
-            ft.Row(
-                controls=[
-                    ft.Container(
-                        content=tabla,
-                        padding=20,
-                        border_radius=10,
-                        bgcolor=ft.Colors.GREY_200,
-                        expand=True,
-                    )
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                expand=True,
-            )
-        ],
-        expand=True,
-        spacing=20,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                # Tabla con expansión proporcional
+                container_tabla,
+            ],
+            expand=True,
+            spacing=20,
+        )
     )
-)
 
 
 if __name__ == "__main__":
