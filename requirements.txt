@@ -1,0 +1,5 @@
+flet
+reportlab
+python-barcode
+Pillow
+qrcode

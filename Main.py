@@ -107,7 +107,8 @@ def main(page: ft.Page):
     def enviar_a_pdf(e):
         if codigos_list:
             id_copias_list = [(item["codigo"], item["cantidad"], item["precio"]) for item in codigos_list]
-            generar_codigos_barras_pdf(id_copias_list)
+            formato = select_formato.value if hasattr(select_formato, 'value') else 'barcode'
+            generar_codigos_barras_pdf(id_copias_list, formato=formato)
             mostrar_mensaje("PDF generado correctamente.")
         else:
             mostrar_mensaje("La lista está vacía. Agregue elementos antes de generar el PDF.", ft.Colors.RED)
@@ -149,6 +150,16 @@ def main(page: ft.Page):
     txt_codigo = ft.TextField(label="Código", autofocus=True, expand=True, border_color=ft.Colors.BLUE)
     txt_cantidad = ft.TextField(label="Cantidad", keyboard_type=ft.KeyboardType.NUMBER, expand=True, border_color=ft.Colors.BLUE)
     txt_precio = ft.TextField(label="Precio (Q)", keyboard_type=ft.KeyboardType.NUMBER, expand=True, border_color=ft.Colors.BLUE)
+    # Selector de formato: 'barcode' o 'qr'
+    select_formato = ft.Dropdown(
+        width=200,
+        options=[
+            ft.dropdown.Option("barcode", text="Código de barras"),
+            ft.dropdown.Option("qr", text="QR"),
+        ],
+        value="barcode",
+        label="Formato",
+    )
 
     # Botones
     btn_generar_codigo = ft.ElevatedButton(
@@ -376,7 +387,7 @@ def main(page: ft.Page):
                 controls=[
                     ft.Column(
                         controls=[
-                            ft.Row([txt_codigo, txt_cantidad, txt_precio], spacing=10),
+                            ft.Row([txt_codigo, txt_cantidad, txt_precio, select_formato], spacing=10),
                         ],
                         col={"sm": 12, "md": 7},
                     ),
