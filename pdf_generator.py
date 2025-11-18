@@ -78,6 +78,8 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
         espacio_disponible_codigos = area_util_ancho - ((CODIGOS_POR_FILA - 1) * ESPACIO_HORIZONTAL)
         ANCHO_CODIGO = espacio_disponible_codigos / CODIGOS_POR_FILA
         ALTO_CODIGO = ANCHO_CODIGO
+        # volver a calcular el espacio_total_fila con el nuevo ancho
+        espacio_total_fila = (CODIGOS_POR_FILA * ANCHO_CODIGO) + ((CODIGOS_POR_FILA - 1) * ESPACIO_HORIZONTAL)
         print(f"Ancho de código ajustado a: {ANCHO_CODIGO/cm:.2f} cm para garantizar 6 códigos por fila")
 
     offset_horizontal = max(0, (area_util_ancho - espacio_total_fila) / 2)
@@ -105,14 +107,14 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
 
             if os.path.exists(archivo_img):
                 texto_precio = f"2 x Q{precio_producto}"
-                lienzo_pdf.setFont("Helvetica-Bold", 8)
-                ancho_texto = lienzo_pdf.stringWidth(texto_precio, "Helvetica-Bold", 8)
+                lienzo_pdf.setFont("Helvetica-Bold", 14)
+                ancho_texto = lienzo_pdf.stringWidth(texto_precio, "Helvetica-Bold", 14)
 
                 x_precio = x_actual + (ANCHO_CODIGO - ancho_texto) / 2
-                y_precio = y_actual - 0.3 * cm
+                y_precio = y_actual - 0.4 * cm
                 lienzo_pdf.drawString(x_precio, y_precio, texto_precio)
 
-                y_codigo = y_actual - 0.3 * cm - ESPACIO_PRECIO - ALTO_CODIGO
+                y_codigo = y_actual - 0.4 * cm - ESPACIO_PRECIO - ALTO_CODIGO
 
                 lienzo_pdf.drawImage(
                     archivo_img,
@@ -120,7 +122,7 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
                     y_codigo,
                     width=ANCHO_CODIGO,
                     height=ALTO_CODIGO,
-                    preserveAspectRatio=True,
+                    preserveAspectRatio=False,
                     mask='auto'
                 )
 
