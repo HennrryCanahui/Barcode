@@ -1,0 +1,33 @@
+{
+    "pdf": {
+        "pagesize": "LETTER",
+        "margenes": {
+            "superior_cm": 0.7,
+            "inferior_cm": 0.5,
+            "izquierdo_cm": 0.2,
+            "derecho_cm": 0.2
+        }
+    },
+    "codigo_barras": {
+        "tipo": "code128",
+        "ancho_cm": 3.3,
+        "alto_cm": 1.0,
+        "mostrar_texto": false
+    },
+    "grilla": {
+        "codigos_por_fila": 6,
+        "espacio_horizontal_cm": 0.15,
+        "espacio_vertical_cm": 0.15,
+        "espacio_precio_cm": 0.25
+    },
+    "precio": {
+        "fuente": "Helvetica-Bold",
+        "tamano": 14,
+        "prefijo": "2 X Q",
+        "offset_y_cm": 0.4
+    },
+    "salida": {
+        "carpeta": "codigos",
+        "nombre_pdf": "codigos_barras.pdf"
+    }
+}
