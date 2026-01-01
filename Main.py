@@ -412,7 +412,7 @@ def main(page: ft.Page):
                 height=500,
                 padding=ft.padding.all(12)
             ),
-            actions=[
+            actions=[ 
                 ft.TextButton(
                     "Cancelar",
                     on_click=cerrar_sin_guardar
