@@ -88,63 +88,66 @@ def main(page: ft.Page):
                 ft.dropdown.Option("A4"),
                 ft.dropdown.Option("LEGAL"),
             ],
-            border_color=ft.Colors.PURPLE,
-            expand=True
+            border_color=ft.Colors.PURPLE
         )
 
         input_margen_sup = ft.TextField(
             label="Margen Superior (cm)",
             value=str(ajustes["pdf"]["margenes"]["superior_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.PURPLE,
-            expand=True
+            border_color=ft.Colors.PURPLE
         )
 
         input_margen_inf = ft.TextField(
             label="Margen Inferior (cm)",
             value=str(ajustes["pdf"]["margenes"]["inferior_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.PURPLE,
-            expand=True
+            border_color=ft.Colors.PURPLE
         )
 
         input_margen_izq = ft.TextField(
             label="Margen Izquierdo (cm)",
             value=str(ajustes["pdf"]["margenes"]["izquierdo_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.PURPLE,
-            expand=True
+            border_color=ft.Colors.PURPLE
         )
 
         input_margen_der = ft.TextField(
             label="Margen Derecho (cm)",
             value=str(ajustes["pdf"]["margenes"]["derecho_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.PURPLE,
-            expand=True
+            border_color=ft.Colors.PURPLE
         )
 
         # ===== CAMPOS CÓDIGO DE BARRAS =====
+        dropdown_tipo_codigo = ft.Dropdown(
+            label="Tipo de código",
+            value=ajustes["codigo_barras"]["tipo"].upper(),
+            options=[
+                ft.dropdown.Option("CODE128", "Code 128 (Alfanumérico)"),
+                ft.dropdown.Option("EAN13", "EAN-13 (13 dígitos)"),
+                ft.dropdown.Option("QR", "QR Code"),
+            ],
+            border_color=ft.Colors.BLUE
+        )
+
         input_ancho_codigo = ft.TextField(
             label="Ancho código (cm)",
             value=str(ajustes["codigo_barras"]["ancho_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.BLUE,
-            expand=True
+            border_color=ft.Colors.BLUE
         )
 
         input_alto_codigo = ft.TextField(
             label="Alto código (cm)",
             value=str(ajustes["codigo_barras"]["alto_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.BLUE,
-            expand=True
+            border_color=ft.Colors.BLUE
         )
 
         switch_mostrar_texto = ft.Switch(
             label="Mostrar texto bajo el código",
-            value=ajustes["codigo_barras"]["mostrar_texto"],
-            expand=True
+            value=ajustes["codigo_barras"]["mostrar_texto"]
         )
 
         # ===== CAMPOS GRILLA =====
@@ -152,56 +155,49 @@ def main(page: ft.Page):
             label="Códigos por fila",
             value=str(ajustes["grilla"]["codigos_por_fila"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.GREEN,
-            expand=True
+            border_color=ft.Colors.GREEN
         )
 
         input_espacio_h = ft.TextField(
             label="Espacio horizontal (cm)",
             value=str(ajustes["grilla"]["espacio_horizontal_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.GREEN,
-            expand=True
+            border_color=ft.Colors.GREEN
         )
 
         input_espacio_v = ft.TextField(
             label="Espacio vertical (cm)",
             value=str(ajustes["grilla"]["espacio_vertical_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.GREEN,
-            expand=True
+            border_color=ft.Colors.GREEN
         )
 
         input_espacio_precio = ft.TextField(
             label="Espacio precio (cm)",
             value=str(ajustes["grilla"]["espacio_precio_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.GREEN,
-            expand=True
+            border_color=ft.Colors.GREEN
         )
 
         # ===== CAMPOS PRECIO =====
         input_prefijo_precio = ft.TextField(
             label="Prefijo precio",
             value=ajustes["precio"]["prefijo"],
-            border_color=ft.Colors.ORANGE,
-            expand=True
+            border_color=ft.Colors.ORANGE
         )
 
         input_tamano_fuente = ft.TextField(
             label="Tamaño fuente precio",
             value=str(ajustes["precio"]["tamano"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.ORANGE,
-            expand=True
+            border_color=ft.Colors.ORANGE
         )
 
         input_offset_y = ft.TextField(
             label="Offset Y precio (cm)",
             value=str(ajustes["precio"]["offset_y_cm"]),
             keyboard_type=ft.KeyboardType.NUMBER,
-            border_color=ft.Colors.ORANGE,
-            expand=True
+            border_color=ft.Colors.ORANGE
         )
 
         dropdown_fuente = ft.Dropdown(
@@ -215,23 +211,20 @@ def main(page: ft.Page):
                 ft.dropdown.Option("Courier"),
                 ft.dropdown.Option("Courier-Bold"),
             ],
-            border_color=ft.Colors.ORANGE,
-            expand=True
+            border_color=ft.Colors.ORANGE
         )
 
         # ===== CAMPOS SALIDA =====
         input_carpeta = ft.TextField(
             label="Carpeta de salida",
             value=ajustes["salida"]["carpeta"],
-            border_color=ft.Colors.TEAL,
-            expand=True
+            border_color=ft.Colors.TEAL
         )
 
         input_nombre_pdf = ft.TextField(
             label="Nombre del PDF",
             value=ajustes["salida"]["nombre_pdf"],
-            border_color=ft.Colors.TEAL,
-            expand=True
+            border_color=ft.Colors.TEAL
         )
 
         def guardar_y_cerrar(e):
@@ -243,6 +236,7 @@ def main(page: ft.Page):
                 ajustes["pdf"]["margenes"]["izquierdo_cm"] = float(input_margen_izq.value)
                 ajustes["pdf"]["margenes"]["derecho_cm"] = float(input_margen_der.value)
                 
+                ajustes["codigo_barras"]["tipo"] = dropdown_tipo_codigo.value.lower()
                 ajustes["codigo_barras"]["ancho_cm"] = float(input_ancho_codigo.value)
                 ajustes["codigo_barras"]["alto_cm"] = float(input_alto_codigo.value)
                 ajustes["codigo_barras"]["mostrar_texto"] = switch_mostrar_texto.value
@@ -295,50 +289,36 @@ def main(page: ft.Page):
                             padding=ft.padding.only(bottom=5)
                         ),
                         ft.Container(
-                            content=ft.Row(
-                                [
-                                    input_margen_sup,
-                                    input_margen_inf
-                                ],
-                                spacing=8
-                            ),
+                            content=ft.Row([input_margen_sup, input_margen_inf], spacing=8),
                             padding=ft.padding.only(bottom=5)
                         ),
                         ft.Container(
-                            content=ft.Row(
-                                [
-                                    input_margen_izq,
-                                    input_margen_der
-                                ],
-                                spacing=8
-                            ),
+                            content=ft.Row([input_margen_izq, input_margen_der], spacing=8),
                             padding=ft.padding.only(bottom=5)
                         ),
-
+                        
                         ft.Divider(height=15, color=ft.Colors.GREY_700),
-
+                        
                         # Sección Código de Barras
                         ft.Row([
                             ft.Icon(ft.Icons.QR_CODE, color=ft.Colors.BLUE, size=18),
                             ft.Text("Código de Barras", weight=ft.FontWeight.BOLD, size=15)
                         ]),
                         ft.Container(
-                            content=ft.Row(
-                                [
-                                    input_ancho_codigo,
-                                    input_alto_codigo
-                                ],
-                                spacing=8
-                            ),
+                            content=dropdown_tipo_codigo,
+                            padding=ft.padding.only(bottom=5)
+                        ),
+                        ft.Container(
+                            content=ft.Row([input_ancho_codigo, input_alto_codigo], spacing=8),
                             padding=ft.padding.only(bottom=5)
                         ),
                         ft.Container(
                             content=switch_mostrar_texto,
                             padding=ft.padding.only(bottom=5)
                         ),
-
+                        
                         ft.Divider(height=15, color=ft.Colors.GREY_700),
-
+                        
                         # Sección Grilla
                         ft.Row([
                             ft.Icon(ft.Icons.GRID_ON, color=ft.Colors.GREEN, size=18),
@@ -349,22 +329,16 @@ def main(page: ft.Page):
                             padding=ft.padding.only(bottom=5)
                         ),
                         ft.Container(
-                            content=ft.Row(
-                                [
-                                    input_espacio_h,
-                                    input_espacio_v
-                                ],
-                                spacing=8
-                            ),
+                            content=ft.Row([input_espacio_h, input_espacio_v], spacing=8),
                             padding=ft.padding.only(bottom=5)
                         ),
                         ft.Container(
                             content=input_espacio_precio,
                             padding=ft.padding.only(bottom=5)
                         ),
-
+                        
                         ft.Divider(height=15, color=ft.Colors.GREY_700),
-
+                        
                         # Sección Precio
                         ft.Row([
                             ft.Icon(ft.Icons.ATTACH_MONEY, color=ft.Colors.ORANGE, size=18),
@@ -375,22 +349,16 @@ def main(page: ft.Page):
                             padding=ft.padding.only(bottom=5)
                         ),
                         ft.Container(
-                            content=ft.Row(
-                                [
-                                    input_prefijo_precio,
-                                    input_tamano_fuente
-                                ],
-                                spacing=8
-                            ),
+                            content=ft.Row([input_prefijo_precio, input_tamano_fuente], spacing=8),
                             padding=ft.padding.only(bottom=5)
                         ),
                         ft.Container(
                             content=input_offset_y,
                             padding=ft.padding.only(bottom=5)
                         ),
-
+                        
                         ft.Divider(height=15, color=ft.Colors.GREY_700),
-
+                        
                         # Sección Salida
                         ft.Row([
                             ft.Icon(ft.Icons.FOLDER, color=ft.Colors.TEAL, size=18),
@@ -406,13 +374,13 @@ def main(page: ft.Page):
                         ),
                     ],
                     spacing=8,
-                    scroll=ft.ScrollMode.HIDDEN
+                    scroll=ft.ScrollMode.AUTO,
                 ),
-                width=500,
-                height=500,
-                padding=ft.padding.all(12)
+                width=480,
+                height=480,
+                padding=ft.padding.all(10)
             ),
-            actions=[ 
+            actions=[
                 ft.TextButton(
                     "Cancelar",
                     on_click=cerrar_sin_guardar
