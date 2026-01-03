@@ -124,11 +124,17 @@ def main(page: ft.Page):
             label="Tipo de código",
             value=ajustes["codigo_barras"]["tipo"].upper(),
             options=[
-                ft.dropdown.Option("CODE128", "Code 128 (Alfanumérico)"),
-                ft.dropdown.Option("EAN13", "EAN-13 (13 dígitos)"),
-                ft.dropdown.Option("QR", "QR Code"),
+                ft.dropdown.Option("CODE128", "Code 128 - Alfanumérico completo"),
+                ft.dropdown.Option("EAN13", "EAN-13 - Productos (13 dígitos)"),
+                ft.dropdown.Option("EAN8", "EAN-8 - Productos pequeños (8 dígitos)"),
+                ft.dropdown.Option("UPCA", "UPC-A - América del Norte (12 dígitos)"),
+                ft.dropdown.Option("CODE39", "Code 39 - Industrial"),
+                ft.dropdown.Option("CODE93", "Code 93 - Compacto"),
+                ft.dropdown.Option("ITF", "ITF - Logística (pares de números)"),
+                ft.dropdown.Option("QR", "QR Code - Código 2D"),
             ],
-            border_color=ft.Colors.BLUE
+            border_color=ft.Colors.BLUE,
+            width=400
         )
 
         input_ancho_codigo = ft.TextField(

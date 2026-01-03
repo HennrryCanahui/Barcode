@@ -1,6 +1,6 @@
 {
     "pdf": {
-        "pagesize": "LETTER",
+        "pagesize": "A4",
         "margenes": {
             "superior_cm": 0.7,
             "inferior_cm": 0.5,
@@ -15,7 +15,7 @@
         "mostrar_texto": true
     },
     "grilla": {
-        "codigos_por_fila": 10,
+        "codigos_por_fila": 6,
         "espacio_horizontal_cm": 0.15,
         "espacio_vertical_cm": 0.15,
         "espacio_precio_cm": 0.25
