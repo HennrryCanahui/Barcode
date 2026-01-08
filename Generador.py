@@ -145,10 +145,10 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
         # Si no existe o está vacía, usar escritorio
         if not ruta_base or ruta_base.strip() == "":
             ruta_base = obtener_ruta_escritorio_real()
-            print(f"Usando escritorio por defecto: {ruta_base}")
+           # print(f"Usando escritorio por defecto: {ruta_base}")
         else:
-            print(f"Usando ruta configurada: {ruta_base}")
-        
+           # print(f"Usando ruta configurada: {ruta_base}")
+            pass
         carpeta = ajustes["salida"]["carpeta"]
         nombre_pdf = ajustes["salida"]["nombre_pdf"]
         
@@ -157,7 +157,7 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
         os.makedirs(directorio_salida, exist_ok=True)
         nombre_archivo_salida = os.path.join(directorio_salida, nombre_pdf)
         
-        print(f"Ruta completa del PDF: {nombre_archivo_salida}")
+       # print(f"Ruta completa del PDF: {nombre_archivo_salida}")
 
     # ===============================
     # GENERAR CÓDIGOS
@@ -199,23 +199,23 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
                 continue
 
     # Mostrar advertencias
-    if advertencias:
-        print("\nINFORMACIÓN:")
-        for adv in advertencias:
-            print(f"  {adv}")
-        print()
+   # if advertencias:
+    #    print("\nINFORMACIÓN:")
+     #   for adv in advertencias:
+      #      print(f"  {adv}")
+       # print()
 
     # Mostrar errores
-    if errores:
-        print("ERRORES:")
-        for error in errores:
-            print(f"  {error}")
-        print()
+   # if errores:
+    #    print("ERRORES:")
+     #   for error in errores:
+      #      print(f"  {error}")
+       # print()
 
     # Si no se generó ningún código, salir
-    if not diccionario_codigos_barras:
-        print("No se pudo generar ningún código válido. Verifique los datos.")
-        return
+   # if not diccionario_codigos_barras:
+    #    print("No se pudo generar ningún código válido. Verifique los datos.")
+     #   return
 
     # ===============================
     # PDF
@@ -223,7 +223,7 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
     lienzo_pdf = canvas.Canvas(nombre_archivo_salida, pagesize=page_size)
     ancho_hoja, alto_hoja = page_size
     
-    print(f"Tamaño de página: {pagesize_config} ({ancho_hoja/cm:.1f}cm x {alto_hoja/cm:.1f}cm)")
+   # print(f"Tamaño de página: {pagesize_config} ({ancho_hoja/cm:.1f}cm x {alto_hoja/cm:.1f}cm)")
 
     area_util_ancho = ancho_hoja - MARGEN_IZQUIERDO - MARGEN_DERECHO
     area_util_alto = alto_hoja - MARGEN_SUPERIOR - MARGEN_INFERIOR
@@ -296,8 +296,8 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
                 codigo_en_fila = 0
 
     lienzo_pdf.save()
-    print(f"\nPDF generado exitosamente: {nombre_archivo_salida}")
-    print(f"Total de códigos en PDF: {codigos_generados}")
+    #print(f"\nPDF generado exitosamente: {nombre_archivo_salida}")
+    #print(f"Total de códigos en PDF: {codigos_generados}")
 
     # Limpiar archivos temporales
     archivos_eliminados = 0
@@ -307,7 +307,8 @@ def generar_codigos_barras_pdf(lista_productos_con_cantidades, nombre_archivo_sa
                 os.remove(ruta_archivo_temporal)
                 archivos_eliminados += 1
         except Exception as e:
-            print(f"Error eliminando archivo temporal {ruta_archivo_temporal}: {e}")
+            #print(f"Error eliminando archivo temporal {ruta_archivo_temporal}: {e}")
+            pass
     
-    print(f"Archivos temporales eliminados: {archivos_eliminados}\n")
+    #print(f"Archivos temporales eliminados: {archivos_eliminados}\n")
 

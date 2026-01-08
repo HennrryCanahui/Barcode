@@ -278,7 +278,7 @@ def main(page: ft.Page):
             async def confirmar_restablecimiento(e):
                 try:
                     valores_defecto = obtener_valores_por_defecto()
-                    print("Restableciendo valores...")
+
 
                     # === UI ===
                     dropdown_pagesize.value = valores_defecto["pdf"]["pagesize"]
@@ -322,9 +322,6 @@ def main(page: ft.Page):
 
 
                 except Exception as ex:
-                    print(f"Error al restablecer: {ex}")
-                    import traceback
-                    traceback.print_exc()
                     mostrar_mensaje(f"Error al restablecer valores: {str(ex)}", ft.Colors.RED)
 
             def cancelar_restablecimiento(e):
