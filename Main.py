@@ -1,11 +1,10 @@
 import flet as ft
-from Generador import generar_codigos_barras_pdf, obtener_ruta_escritorio_real
+from Generador import generar_codigos_barras_pdf
 import functools
-import random
-import os
 import subprocess
 import platform
-import json
+import asyncio
+from Funciones import *
 
 def main(page: ft.Page):
     page.title = "Generador de códigos de barras"
@@ -27,53 +26,6 @@ def main(page: ft.Page):
     snack_bar = ft.SnackBar(ft.Text(""))
     page.overlay.append(snack_bar)
 
-    
-    def cargar_ajustes(ruta="ajustes.json"):
-        # Si no existe el archivo, crear uno con valores por defecto
-        if not os.path.exists(ruta):
-            ajustes_default = {
-                "pdf": {
-                    "pagesize": "LETTER",
-                    "margenes": {
-                        "superior_cm": 0.7,
-                        "inferior_cm": 0.5,
-                        "izquierdo_cm": 0.2,
-                        "derecho_cm": 0.2
-                    }
-                },
-                "codigo_barras": {
-                    "tipo": "code128",
-                    "ancho_cm": 3.3,
-                    "alto_cm": 1.0,
-                    "mostrar_texto": False
-                },
-                "grilla": {
-                    "codigos_por_fila": 6,
-                    "espacio_horizontal_cm": 0.15,
-                    "espacio_vertical_cm": 0.15,
-                    "espacio_precio_cm": 0.25
-                },
-                "precio": {
-                    "fuente": "Helvetica-Bold",
-                    "tamano": 14,
-                    "prefijo": "Q",
-                    "offset_y_cm": 0.4
-                },
-                "salida": {
-                    "carpeta": "codigos",
-                    "nombre_pdf": "codigos_barras.pdf"
-                }
-            }
-            with open(ruta, "w", encoding="utf-8") as f:
-                json.dump(ajustes_default, f, indent=4, ensure_ascii=False)
-            return ajustes_default
-
-        with open(ruta, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def guardar_ajustes(ajustes, ruta="ajustes.json"):
-        with open(ruta, "w", encoding="utf-8") as f:
-            json.dump(ajustes, f, indent=4, ensure_ascii=False)
 
     # --- DIÁLOGO DE AJUSTES ---
     def mostrar_ajustes(e):
@@ -210,27 +162,67 @@ def main(page: ft.Page):
             label="Fuente precio",
             value=ajustes["precio"]["fuente"],
             options=[
-                ft.dropdown.Option("Helvetica"),
-                ft.dropdown.Option("Helvetica-Bold"),
-                ft.dropdown.Option("Times-Roman"),
-                ft.dropdown.Option("Times-Bold"),
-                ft.dropdown.Option("Courier"),
-                ft.dropdown.Option("Courier-Bold"),
+                ft.dropdown.Option("Helvetica", "Helvetica"),
+                ft.dropdown.Option("Helvetica-Bold", "Helvetica Bold"),
+                ft.dropdown.Option("Helvetica-Oblique", "Helvetica Italic"),
+                ft.dropdown.Option("Helvetica-BoldOblique", "Helvetica Bold Italic"),
+                ft.dropdown.Option("Times-Roman", "Times New Roman"),
+                ft.dropdown.Option("Times-Bold", "Times Bold"),
+                ft.dropdown.Option("Times-Italic", "Times Italic"),
+                ft.dropdown.Option("Times-BoldItalic", "Times Bold Italic"),
+                ft.dropdown.Option("Courier", "Courier"),
+                ft.dropdown.Option("Courier-Bold", "Courier Bold"),
+                ft.dropdown.Option("Courier-Oblique", "Courier Italic"),
+                ft.dropdown.Option("Courier-BoldOblique", "Courier Bold Italic"),
             ],
             border_color=ft.Colors.ORANGE
         )
 
         # ===== CAMPOS SALIDA =====
+        # Crear FilePicker al inicio
+        def resultado_seleccion(e: ft.FilePickerResultEvent):
+            if e.path:
+                input_ruta_base.value = e.path
+                page.update()
+
+        file_picker = ft.FilePicker(on_result=resultado_seleccion)
+        page.overlay.append(file_picker)
+        page.update()
+
+        input_ruta_base = ft.TextField(
+            label="Ubicación de salida",
+            value=ajustes["salida"].get("ruta_base", obtener_ruta_escritorio_real()),
+            read_only=True,
+            border_color=ft.Colors.TEAL,
+            expand=True
+        )
+
+        def seleccionar_carpeta(e):
+            """Abre el selector de carpetas"""
+            file_picker.get_directory_path(
+                dialog_title="Seleccionar ubicación de salida",
+                initial_directory=input_ruta_base.value
+            )
+
+        btn_seleccionar_carpeta = ft.IconButton(
+            icon=ft.Icons.FOLDER_OPEN,
+            icon_color=ft.Colors.TEAL,
+            tooltip="Seleccionar carpeta",
+            on_click=seleccionar_carpeta
+        )
+
         input_carpeta = ft.TextField(
-            label="Carpeta de salida",
+            label="Nombre de carpeta",
             value=ajustes["salida"]["carpeta"],
             border_color=ft.Colors.TEAL
         )
 
         input_nombre_pdf = ft.TextField(
-            label="Nombre del PDF",
-            value=ajustes["salida"]["nombre_pdf"],
-            border_color=ft.Colors.TEAL
+            label="Nombre del PDF (sin extensión)",
+            value=ajustes["salida"]["nombre_pdf"].replace('.pdf', ''),
+            border_color=ft.Colors.TEAL,
+            hint_text="Ejemplo: codigos_barras",
+            suffix_text=".pdf"
         )
 
         def guardar_y_cerrar(e):
@@ -242,7 +234,7 @@ def main(page: ft.Page):
                 ajustes["pdf"]["margenes"]["izquierdo_cm"] = float(input_margen_izq.value)
                 ajustes["pdf"]["margenes"]["derecho_cm"] = float(input_margen_der.value)
                 
-                ajustes["codigo_barras"]["tipo"] = dropdown_tipo_codigo.value.lower()
+                ajustes["codigo_barras"]["tipo"] = dropdown_tipo_codigo.value.upper()
                 ajustes["codigo_barras"]["ancho_cm"] = float(input_ancho_codigo.value)
                 ajustes["codigo_barras"]["alto_cm"] = float(input_alto_codigo.value)
                 ajustes["codigo_barras"]["mostrar_texto"] = switch_mostrar_texto.value
@@ -257,12 +249,19 @@ def main(page: ft.Page):
                 ajustes["precio"]["prefijo"] = input_prefijo_precio.value
                 ajustes["precio"]["offset_y_cm"] = float(input_offset_y.value)
                 
-                ajustes["salida"]["carpeta"] = input_carpeta.value
-                ajustes["salida"]["nombre_pdf"] = input_nombre_pdf.value
+                # Asegurar que la ruta se guarde correctamente
+                ajustes["salida"]["ruta_base"] = input_ruta_base.value.strip()
+                ajustes["salida"]["carpeta"] = input_carpeta.value.strip()
+                
+                # Asegurar extensión .pdf
+                nombre_pdf = input_nombre_pdf.value.strip()
+                if not nombre_pdf.lower().endswith('.pdf'):
+                    nombre_pdf += '.pdf'
+                ajustes["salida"]["nombre_pdf"] = nombre_pdf
                 
                 # Guardar en archivo
                 guardar_ajustes(ajustes)
-                mostrar_mensaje("✓ Ajustes guardados correctamente", ft.Colors.GREEN)
+                mostrar_mensaje("Ajustes guardados correctamente", ft.Colors.GREEN)
                 dlg_ajustes.open = False
                 page.update()
                 
@@ -273,6 +272,108 @@ def main(page: ft.Page):
 
         def cerrar_sin_guardar(e):
             dlg_ajustes.open = False
+            page.update()
+
+        def restablecer_valores_defecto(e):
+            async def confirmar_restablecimiento(e):
+                try:
+                    valores_defecto = obtener_valores_por_defecto()
+                    print("Restableciendo valores...")
+
+                    # === UI ===
+                    dropdown_pagesize.value = valores_defecto["pdf"]["pagesize"]
+                    input_margen_sup.value = str(valores_defecto["pdf"]["margenes"]["superior_cm"])
+                    input_margen_inf.value = str(valores_defecto["pdf"]["margenes"]["inferior_cm"])
+                    input_margen_izq.value = str(valores_defecto["pdf"]["margenes"]["izquierdo_cm"])
+                    input_margen_der.value = str(valores_defecto["pdf"]["margenes"]["derecho_cm"])
+                    
+                    dropdown_tipo_codigo.value = valores_defecto["codigo_barras"]["tipo"].upper()
+                    input_ancho_codigo.value = str(valores_defecto["codigo_barras"]["ancho_cm"])
+                    input_alto_codigo.value = str(valores_defecto["codigo_barras"]["alto_cm"])
+                    switch_mostrar_texto.value = valores_defecto["codigo_barras"]["mostrar_texto"]
+                    
+                    input_codigos_fila.value = str(valores_defecto["grilla"]["codigos_por_fila"])
+                    input_espacio_h.value = str(valores_defecto["grilla"]["espacio_horizontal_cm"])
+                    input_espacio_v.value = str(valores_defecto["grilla"]["espacio_vertical_cm"])
+                    input_espacio_precio.value = str(valores_defecto["grilla"]["espacio_precio_cm"])
+                    
+                    dropdown_fuente.value = valores_defecto["precio"]["fuente"]
+                    input_tamano_fuente.value = str(valores_defecto["precio"]["tamano"])
+                    input_prefijo_precio.value = valores_defecto["precio"]["prefijo"]
+                    input_offset_y.value = str(valores_defecto["precio"]["offset_y_cm"])
+                    
+                    input_ruta_base.value = valores_defecto["salida"]["ruta_base"]
+                    input_carpeta.value = valores_defecto["salida"]["carpeta"]
+                    input_nombre_pdf.value = valores_defecto["salida"]["nombre_pdf"].replace('.pdf', '')
+
+                    # === Guardar JSON ===
+                    import json
+                    with open("ajustes.json", "w", encoding="utf-8") as f:
+                        json.dump(valores_defecto, f, indent=4, ensure_ascii=False)
+
+                    # === UI update ===
+                    dlg_confirmar.open = False
+                    page.update()
+                    mostrar_mensaje("Valores restablecidos a predeterminados", ft.Colors.BLUE)
+                    await asyncio.sleep(1.5)
+                    # abrir ajustes
+                    mostrar_ajustes(e)
+                    page.update()
+
+
+                except Exception as ex:
+                    print(f"Error al restablecer: {ex}")
+                    import traceback
+                    traceback.print_exc()
+                    mostrar_mensaje(f"Error al restablecer valores: {str(ex)}", ft.Colors.RED)
+
+            def cancelar_restablecimiento(e):
+                dlg_confirmar.open = False
+                page.update()
+
+            # Crear diálogo de confirmación
+            dlg_confirmar = ft.AlertDialog(
+                modal=True,
+                title=ft.Row([
+                    ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.ORANGE, size=28),
+                    ft.Text("Confirmar Restablecimiento", weight=ft.FontWeight.BOLD, size=16)
+                ]),
+                content=ft.Container(
+                    content=ft.Column([
+                        ft.Text(
+                            "¿Estás seguro de que deseas restablecer todos los valores a su configuración predeterminada?",
+                            size=14
+                        ),
+                        ft.Divider(height=10, color=ft.Colors.GREY_700),
+                        ft.Text(
+                            "Esta acción revertirá todos los cambios actuales.",
+                            size=12,
+                            color=ft.Colors.GREY_400,
+                            italic=True
+                        )
+                    ], tight=True, spacing=10),
+                    width=400
+                ),
+                actions=[
+                    ft.TextButton(
+                        "No, cancelar",
+                        on_click=cancelar_restablecimiento
+                    ),
+                    ft.ElevatedButton(
+                        "Sí, restablecer",
+                        icon=ft.Icons.RESTORE,
+                        bgcolor=ft.Colors.ORANGE,
+                        color=ft.Colors.WHITE,
+                        on_click=confirmar_restablecimiento
+                    ),
+                ],
+                actions_alignment=ft.MainAxisAlignment.END,
+            )
+
+            # Agregar al overlay y abrir
+            if dlg_confirmar not in page.overlay:
+                page.overlay.append(dlg_confirmar)
+            dlg_confirmar.open = True
             page.update()
 
         # ===== CREAR DIÁLOGO =====
@@ -371,6 +472,13 @@ def main(page: ft.Page):
                             ft.Text("Salida", weight=ft.FontWeight.BOLD, size=15)
                         ]),
                         ft.Container(
+                            content=ft.Row([
+                                input_ruta_base,
+                                btn_seleccionar_carpeta
+                            ], spacing=5),
+                            padding=ft.padding.only(bottom=5)
+                        ),
+                        ft.Container(
                             content=input_carpeta,
                             padding=ft.padding.only(bottom=5)
                         ),
@@ -392,6 +500,13 @@ def main(page: ft.Page):
                     on_click=cerrar_sin_guardar
                 ),
                 ft.ElevatedButton(
+                    "Restablecer",
+                    icon=ft.Icons.RESTORE,
+                    bgcolor=ft.Colors.ORANGE,
+                    color=ft.Colors.WHITE,
+                    on_click=restablecer_valores_defecto
+                ),
+                ft.ElevatedButton(
                     "Guardar Cambios",
                     icon=ft.Icons.SAVE,
                     bgcolor=ft.Colors.PURPLE,
@@ -399,7 +514,7 @@ def main(page: ft.Page):
                     on_click=guardar_y_cerrar
                 ),
             ],
-            actions_alignment=ft.MainAxisAlignment.END,
+            actions_alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
 
         # Agregar el diálogo al overlay y abrirlo
@@ -415,10 +530,9 @@ def main(page: ft.Page):
         snack_bar.open = True
         page.update()
 
-    # Función para generar un número aleatorio de 12 cifras
+    # Función para generar un número segun el tipo de codigo
     def generar_numero_aleatorio(e):
-        numero_aleatorio = str(random.randint(10**11, 10**12 - 1))
-        txt_codigo.value = numero_aleatorio
+        txt_codigo.value = generador_codigo()
         page.update()
 
     # Función para agregar o actualizar datos en la tabla
@@ -490,8 +604,11 @@ def main(page: ft.Page):
 
     # Función para imprimir
     def imprimir_pdf(e):
-        ruta = obtener_ruta_escritorio_real()
-        ruta_pdf = os.path.expanduser(rf"{ruta}\codigos\codigos_barras.pdf")
+        ajustes = cargar_ajustes()
+        ruta_base = ajustes["salida"].get("ruta_base", obtener_ruta_escritorio_real())
+        carpeta = ajustes["salida"]["carpeta"]
+        nombre_pdf = ajustes["salida"]["nombre_pdf"]
+        ruta_pdf = os.path.join(ruta_base, carpeta, nombre_pdf)
         
         if not os.path.exists(ruta_pdf):
             mostrar_mensaje("No se encontró el archivo PDF. Genere el PDF primero.", ft.Colors.RED)

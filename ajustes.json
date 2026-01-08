@@ -1,6 +1,6 @@
 {
     "pdf": {
-        "pagesize": "A4",
+        "pagesize": "LETTER",
         "margenes": {
             "superior_cm": 0.7,
             "inferior_cm": 0.5,
@@ -9,10 +9,10 @@
         }
     },
     "codigo_barras": {
-        "tipo": "qr",
+        "tipo": "CODE128",
         "ancho_cm": 3.3,
-        "alto_cm": 1.5,
-        "mostrar_texto": true
+        "alto_cm": 1.0,
+        "mostrar_texto": false
     },
     "grilla": {
         "codigos_por_fila": 6,
@@ -28,6 +28,7 @@
     },
     "salida": {
         "carpeta": "codigos",
-        "nombre_pdf": "codigos_barras.pdf"
+        "nombre_pdf": "codigos_barras.pdf",
+        "ruta_base": "C:\\Users\\hennr\\OneDrive\\Escritorio"
     }
 }
