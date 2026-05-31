@@ -48,7 +48,8 @@ def obtener_valores_por_defecto():
         "salida": {
             "carpeta": "codigos",
             "nombre_pdf": "codigos_barras.pdf",
-            "ruta_base": obtener_ruta_escritorio_real()
+            "ruta_base": obtener_ruta_escritorio_real(),
+            "eliminar_lista_al_crear_pdf": True
         }
     }
 

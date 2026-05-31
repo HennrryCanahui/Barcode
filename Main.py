@@ -18,8 +18,18 @@ def main(page: ft.Page):
     page.padding = 20
     page.theme_mode = ft.ThemeMode.DARK
 
+    # Ruta de la lista
+    ruta_lista = "listado.json"
+
     # Variables para almacenar datos
     codigos_list = []
+    if os.path.exists(ruta_lista):
+        try:
+            with open(ruta_lista, "r", encoding="utf-8") as f:
+                codigos_list = json.load(f)
+        except Exception:
+            codigos_list = []
+            
     index_editar = None
 
     # Crear el SnackBar una sola vez
@@ -225,6 +235,11 @@ def main(page: ft.Page):
             suffix_text=".pdf"
         )
 
+        switch_eliminar_lista = ft.Switch(
+            label="Eliminar listado.json al generar PDF",
+            value=ajustes["salida"].get("eliminar_lista_al_crear_pdf", True)
+        )
+
         def guardar_y_cerrar(e):
             try:
                 # Actualizar valores en el diccionario
@@ -258,6 +273,7 @@ def main(page: ft.Page):
                 if not nombre_pdf.lower().endswith('.pdf'):
                     nombre_pdf += '.pdf'
                 ajustes["salida"]["nombre_pdf"] = nombre_pdf
+                ajustes["salida"]["eliminar_lista_al_crear_pdf"] = switch_eliminar_lista.value
                 
                 # Guardar en archivo
                 guardar_ajustes(ajustes)
@@ -305,6 +321,7 @@ def main(page: ft.Page):
                     input_ruta_base.value = valores_defecto["salida"]["ruta_base"]
                     input_carpeta.value = valores_defecto["salida"]["carpeta"]
                     input_nombre_pdf.value = valores_defecto["salida"]["nombre_pdf"].replace('.pdf', '')
+                    switch_eliminar_lista.value = valores_defecto["salida"].get("eliminar_lista_al_crear_pdf", True)
 
                     # === Guardar JSON ===
                     import json
@@ -483,6 +500,10 @@ def main(page: ft.Page):
                             content=input_nombre_pdf,
                             padding=ft.padding.only(bottom=5)
                         ),
+                        ft.Container(
+                            content=switch_eliminar_lista,
+                            padding=ft.padding.only(bottom=5)
+                        ),
                     ],
                     spacing=8,
                     scroll=ft.ScrollMode.AUTO,
@@ -553,6 +574,11 @@ def main(page: ft.Page):
                 mostrar_mensaje("Registro agregado correctamente.")
             
             actualizar_tabla()
+            try:
+                with open(ruta_lista, "w", encoding="utf-8") as f:
+                    json.dump(codigos_list, f, indent=4, ensure_ascii=False)
+            except Exception as ex:
+                print(f"Error al guardar listado.json: {ex}")
             txt_codigo.value = txt_cantidad.value = txt_precio.value = ""
             txt_codigo.focus()
             page.update()
@@ -588,6 +614,11 @@ def main(page: ft.Page):
             index_editar -= 1
             
         actualizar_tabla()
+        try:
+            with open(ruta_lista, "w", encoding="utf-8") as f:
+                json.dump(codigos_list, f, indent=4, ensure_ascii=False)
+        except Exception as ex:
+            print(f"Error al guardar listado.json: {ex}")
         mostrar_mensaje("Registro eliminado correctamente.")
 
     # Función para enviar datos a la función generar_codigos_barras_pdf
@@ -596,6 +627,14 @@ def main(page: ft.Page):
             id_copias_list = [(item["codigo"], item["cantidad"], item["precio"]) for item in codigos_list]
             generar_codigos_barras_pdf(id_copias_list)
             mostrar_mensaje("PDF generado correctamente.")
+            
+            ajustes = cargar_ajustes()
+            if ajustes["salida"].get("eliminar_lista_al_crear_pdf", True):
+                if os.path.exists(ruta_lista):
+                    try:
+                        os.remove(ruta_lista)
+                    except Exception as ex:
+                        print(f"Error al eliminar listado.json: {ex}")
         else:
             mostrar_mensaje("La lista está vacía. Agregue elementos antes de generar el PDF.", ft.Colors.RED)
 
@@ -900,9 +939,11 @@ def main(page: ft.Page):
                 container_tabla,
             ],
             expand=True,
-            spacing=20,
         )
     )
+    # Si hay registros precargados, actualizar la grilla
+    if codigos_list:
+        actualizar_tabla()
 
 
 if __name__ == "__main__":
