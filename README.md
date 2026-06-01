@@ -18,6 +18,7 @@ Una aplicación de escritorio moderna e intuitiva desarrollada en **Python** uti
 - **Gestión Dinámica de Datos**: Tabla interactiva que permite añadir, editar y eliminar registros de productos, definiendo cantidades y precios por lote.
 - **Ubicación de Salida Personalizable**: Selector interactivo de carpetas para guardar el archivo PDF final.
 - **Integración con Impresora**: Apertura automática del archivo generado en el visor predeterminado del sistema operativo para una impresión rápida.
+- **Crear archivos de respaldo**: El usuario puede elegir si crear archivos de respaldo para guardar los datos de la lista de codigos y los ajustes de la aplicacion.
 
 ---
 
@@ -47,6 +48,7 @@ Barcode/
 ├── Funciones.py        # Funciones auxiliares para la carga de ajustes, rutas y números aleatorios
 ├── Generador.py        # Motor de generación de códigos de barras, QR y estructura del PDF (ReportLab)
 ├── ajustes.json        # Archivo de configuración persistente (márgenes, tamaños, fuentes, etc.)
+├── listado.json        # Archivo de configuración persistente de la lista de codigos
 ├── icono.ico           # Icono de la aplicación
 └── GEN CODE.spec       # Archivo de especificación de PyInstaller para compilar a ejecutable
 ```
@@ -68,7 +70,9 @@ python Main.py
 1. Haz clic en el botón **Ajustes** (icono de engranaje).
 2. Define los márgenes de página, tamaño del papel, el tipo de código que deseas imprimir (ej. *CODE128* o *QR Code*), así como la distribución en filas.
 3. Elige la carpeta donde deseas almacenar el archivo generado y el nombre del PDF.
-4. Presiona **Guardar Cambios**. Si deseas volver a los valores iniciales, puedes usar el botón **Restablecer**.
+4. elige si quieres crear un archivo de respaldo para guardar los datos de la lista de codigos
+5. Guarda tus ajustes para que se apliquen en la próxima ejecución.
+6. Presiona **Guardar Cambios**. Si deseas volver a los valores iniciales, puedes usar el botón **Restablecer**.
 
 ### 3. Cargar la lista de productos
 
