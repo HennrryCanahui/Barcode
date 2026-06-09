@@ -1,8 +1,14 @@
-# Ignorar archivos compilados de Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-ajustes.json
-listado.json
-.gitignore
+# 1. Ignorar todos los archivos por defecto
+*
+
+# 2. Permitir que Git explore las carpetas (necesario para no bloquear subcarpetas)
+!*/
+
+# 3. Mantener el archivo de control de Git
+!.gitignore
+
+# 4. EXCEPCIONES: Únicos archivos permitidos en todo el proyecto
+!Funciones.py
+!Generador.py
+!Main.py
+!README.md
